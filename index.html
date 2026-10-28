@@ -229,10 +229,18 @@
                 <div>
                   <label class="block text-[11px] font-mono text-slate-400 mb-1">Display Email</label>
                   <input type="email" id="input-email" oninput="updateData('email', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+                  <label class="inline-flex items-center gap-1.5 mt-1.5 text-[10px] font-mono text-slate-400 cursor-pointer">
+                    <input type="checkbox" id="input-showEmailInHeader" onchange="updateData('showEmailInHeader', this.checked)" class="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer">
+                    <span>Show Mailto Button in Action Bar</span>
+                  </label>
                 </div>
                 <div>
                   <label class="block text-[11px] font-mono text-slate-400 mb-1">Display Phone</label>
                   <input type="text" id="input-phone" oninput="updateData('phone', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+                  <label class="inline-flex items-center gap-1.5 mt-1.5 text-[10px] font-mono text-slate-400 cursor-pointer">
+                    <input type="checkbox" id="input-showPhoneInHeader" onchange="updateData('showPhoneInHeader', this.checked)" class="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer">
+                    <span>Show Call Button in Action Bar</span>
+                  </label>
                 </div>
               </div>
 
@@ -463,7 +471,7 @@
             <div class="pb-2 border-b hairline flex items-center justify-between">
               <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>Font &amp; Accent Color Customization</span>
+                <span>Font &amp; Background Color Customization</span>
               </h2>
               <button onclick="resetColorsToTheme()" class="text-[10px] font-mono text-cyan-400 hover:underline flex items-center gap-1">
                 <i class="fa-solid fa-rotate-left"></i> Reset Colors
@@ -471,6 +479,14 @@
             </div>
 
             <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-mono text-slate-400 mb-1">Background Color</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="input-bgColor" onchange="updateData('bgColor', this.value)" class="w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer p-0.5">
+                  <span id="bgColorHex" class="text-xs font-mono text-slate-300">#030712</span>
+                </div>
+              </div>
+
               <div>
                 <label class="block text-[10px] font-mono text-slate-400 mb-1">Heading Color</label>
                 <div class="flex items-center gap-2">
@@ -495,7 +511,7 @@
                 </div>
               </div>
 
-              <div>
+              <div class="col-span-2">
                 <label class="block text-[10px] font-mono text-slate-400 mb-1">Primary Accent Color</label>
                 <div class="flex items-center gap-2">
                   <input type="color" id="input-accentColor" onchange="updateData('accentColor', this.value)" class="w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer p-0.5">
@@ -642,6 +658,11 @@
   <script>
     // Platform Icon Lookup Map
     const platformIcons = {
+      wechat: "fa-brands fa-weixin",
+      email: "fa-solid fa-envelope",
+      phone: "fa-solid fa-phone",
+      telegram: "fa-brands fa-telegram",
+      whatsapp: "fa-brands fa-whatsapp",
       github: "fa-brands fa-github",
       linkedin: "fa-brands fa-linkedin",
       x: "fa-brands fa-x-twitter",
@@ -654,7 +675,6 @@
       substack: "fa-solid fa-newspaper",
       medium: "fa-brands fa-medium",
       discord: "fa-brands fa-discord",
-      whatsapp: "fa-brands fa-whatsapp",
       spotify: "fa-brands fa-spotify",
       behance: "fa-brands fa-behance",
       dribbble: "fa-brands fa-dribbble",
@@ -664,24 +684,28 @@
     // Theme Color Presets Mapping
     const themeDefaultColors = {
       editorial: {
+        bgColor: "#fafaf9",
         headingColor: "#0f172a",
         bodyTextColor: "#334155",
         mutedTextColor: "#64748b",
         accentColor: "#2563eb"
       },
       cyber: {
+        bgColor: "#030712",
         headingColor: "#ffffff",
         bodyTextColor: "#cbd5e1",
         mutedTextColor: "#64748b",
         accentColor: "#06b6d4"
       },
       rainbow: {
+        bgColor: "#0f172a",
         headingColor: "#ffffff",
         bodyTextColor: "#fbcfe8",
         mutedTextColor: "#f472b6",
         accentColor: "#ff007f"
       },
       atmospheric: {
+        bgColor: "#0b0f19",
         headingColor: "#fffbeb",
         bodyTextColor: "#fef3c7",
         mutedTextColor: "#d97706",
@@ -698,6 +722,8 @@
       phone: "+1 (415) 555-0199",
       vcardPhone: "+14155550199",
       calendly: "https://calendly.com",
+      showEmailInHeader: true,
+      showPhoneInHeader: true,
 
       // SEO & OpenGraph & PWA
       ogTitle: "",
@@ -711,6 +737,7 @@
 
       // Themes & Colors
       theme: "cyber",
+      bgColor: "#030712",
       headingColor: "#ffffff",
       bodyTextColor: "#cbd5e1",
       mutedTextColor: "#64748b",
@@ -782,7 +809,9 @@
     // Input Update Handler
     function updateData(key, value) {
       cardData[key] = value;
-      if (key === 'headingColor') {
+      if (key === 'bgColor') {
+        document.getElementById('bgColorHex').innerText = value;
+      } else if (key === 'headingColor') {
         document.getElementById('headingColorHex').innerText = value;
       } else if (key === 'bodyTextColor') {
         document.getElementById('bodyTextColorHex').innerText = value;
@@ -802,6 +831,8 @@
       document.getElementById('input-phone').value = cardData.phone || '';
       document.getElementById('input-vcardPhone').value = cardData.vcardPhone || '';
       document.getElementById('input-calendly').value = cardData.calendly || '';
+      document.getElementById('input-showEmailInHeader').checked = cardData.showEmailInHeader !== false;
+      document.getElementById('input-showPhoneInHeader').checked = cardData.showPhoneInHeader !== false;
 
       document.getElementById('input-ogTitle').value = cardData.ogTitle || '';
       document.getElementById('input-ogDescription').value = cardData.ogDescription || '';
@@ -813,6 +844,8 @@
 
       selectTheme(cardData.theme || 'cyber', false);
 
+      document.getElementById('input-bgColor').value = cardData.bgColor || '#030712';
+      document.getElementById('bgColorHex').innerText = cardData.bgColor || '#030712';
       document.getElementById('input-headingColor').value = cardData.headingColor || '#ffffff';
       document.getElementById('headingColorHex').innerText = cardData.headingColor || '#ffffff';
       document.getElementById('input-bodyTextColor').value = cardData.bodyTextColor || '#cbd5e1';
@@ -1126,11 +1159,14 @@
       // Apply default colors for theme
       if (themeDefaultColors[themeKey]) {
         const defs = themeDefaultColors[themeKey];
+        cardData.bgColor = defs.bgColor;
         cardData.headingColor = defs.headingColor;
         cardData.bodyTextColor = defs.bodyTextColor;
         cardData.mutedTextColor = defs.mutedTextColor;
         cardData.accentColor = defs.accentColor;
 
+        document.getElementById('input-bgColor').value = defs.bgColor;
+        document.getElementById('bgColorHex').innerText = defs.bgColor;
         document.getElementById('input-headingColor').value = defs.headingColor;
         document.getElementById('headingColorHex').innerText = defs.headingColor;
         document.getElementById('input-bodyTextColor').value = defs.bodyTextColor;
@@ -1253,21 +1289,10 @@
       const d = cardData;
       const body = document.getElementById('previewCardBody');
 
-      let themeClasses = "bg-slate-950 text-slate-200";
-
-      if (d.theme === 'editorial') {
-        themeClasses = "bg-stone-50 min-h-[720px]";
-      } else if (d.theme === 'cyber') {
-        themeClasses = "bg-slate-950 min-h-[720px]";
-      } else if (d.theme === 'rainbow') {
-        themeClasses = "bg-slate-900 min-h-[720px]";
-      } else if (d.theme === 'atmospheric') {
-        themeClasses = "bg-slate-950 min-h-[720px]";
-      }
-
-      body.className = themeClasses;
       body.style.fontFamily = `'${d.bodyFont}', sans-serif`;
+      body.style.backgroundColor = d.bgColor || '#030712';
 
+      body.style.setProperty('--color-bg', d.bgColor || '#030712');
       body.style.setProperty('--color-heading', d.headingColor || '#ffffff');
       body.style.setProperty('--color-text', d.bodyTextColor || '#cbd5e1');
       body.style.setProperty('--color-muted', d.mutedTextColor || '#64748b');
@@ -1348,6 +1373,18 @@
                 <i class="fa-solid fa-address-card text-xs"></i>
                 <span>Save Contact (.vcf)</span>
               </button>
+              ${d.showEmailInHeader && d.email ? `
+                <a href="mailto:${escapeAttr(d.email)}" class="px-4 py-2 rounded-full border border-slate-800 text-xs font-medium flex items-center gap-1.5 hover:border-slate-700 card-text">
+                  <i class="fa-solid fa-envelope text-xs card-accent"></i>
+                  <span>Email</span>
+                </a>
+              ` : ''}
+              ${d.showPhoneInHeader && (d.vcardPhone || d.phone) ? `
+                <a href="tel:${escapeAttr(d.vcardPhone || d.phone)}" class="px-4 py-2 rounded-full border border-slate-800 text-xs font-medium flex items-center gap-1.5 hover:border-slate-700 card-text">
+                  <i class="fa-solid fa-phone text-xs card-accent"></i>
+                  <span>Call</span>
+                </a>
+              ` : ''}
               ${d.calendly ? `
                 <a href="${escapeAttr(d.calendly)}" target="_blank" rel="noopener" class="px-4 py-2 rounded-full border border-slate-800 text-xs font-medium flex items-center gap-1.5 hover:border-slate-700 card-text">
                   <i class="fa-regular fa-calendar text-xs card-accent"></i>
@@ -1441,7 +1478,7 @@
         short_name: d.name || "Digital Card",
         start_url: "./",
         display: "standalone",
-        background_color: d.headingColor || "#0f172a",
+        background_color: d.bgColor || "#0f172a",
         theme_color: d.accentColor || "#06b6d4",
         icons: [{
           src: metaImage || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎴</text></svg>",
@@ -1499,6 +1536,7 @@
 
   <style>
     :root {
+      --color-bg: ${d.bgColor || '#030712'};
       --color-heading: ${d.headingColor || '#ffffff'};
       --color-text: ${d.bodyTextColor || '#cbd5e1'};
       --color-muted: ${d.mutedTextColor || '#64748b'};
@@ -1507,6 +1545,7 @@
 
     body {
       font-family: '${d.bodyFont}', sans-serif;
+      background-color: var(--color-bg);
       -webkit-tap-highlight-color: transparent;
       text-rendering: optimizeLegibility;
     }
@@ -1546,10 +1585,10 @@
   </style>
 </head>
 
-<body class="bg-slate-950 text-slate-200 min-h-screen transition-colors duration-300 relative selection:bg-cyan-500 selection:text-black">
+<body class="text-slate-200 min-h-screen transition-colors duration-300 relative selection:bg-cyan-500 selection:text-black" style="background-color: var(--color-bg);">
 
   <!-- Top Sticky Utilities Bar -->
-  <header class="sticky top-0 z-30 backdrop-blur-md bg-slate-950/80 border-b hairline">
+  <header class="sticky top-0 z-30 backdrop-blur-md border-b hairline" style="background-color: var(--color-bg);">
     <div class="max-w-xl mx-auto px-6 h-12 flex items-center justify-between text-xs">
       <span class="font-mono font-semibold uppercase tracking-widest text-[11px] card-heading">
         ${escapeHtml(d.name || '')}
@@ -1588,6 +1627,14 @@
             <i class="fa-solid fa-address-card text-xs"></i>
             <span>Save to Contacts (.vcf)</span>
           </button>
+          ${d.showEmailInHeader && d.email ? `<a href="mailto:${escapeAttr(d.email)}" class="px-5 py-2.5 rounded-full border border-slate-800 hover:border-slate-700 text-xs font-medium transition-all flex items-center gap-2 card-text">
+            <i class="fa-solid fa-envelope text-xs card-accent"></i>
+            <span>Email</span>
+          </a>` : ''}
+          ${d.showPhoneInHeader && (d.vcardPhone || d.phone) ? `<a href="tel:${escapeAttr(d.vcardPhone || d.phone)}" class="px-5 py-2.5 rounded-full border border-slate-800 hover:border-slate-700 text-xs font-medium transition-all flex items-center gap-2 card-text">
+            <i class="fa-solid fa-phone text-xs card-accent"></i>
+            <span>Call</span>
+          </a>` : ''}
           ${d.calendly ? `<a href="${escapeAttr(d.calendly)}" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-full border border-slate-800 hover:border-slate-700 text-xs font-medium transition-all flex items-center gap-2 card-text">
             <i class="fa-regular fa-calendar text-xs card-accent"></i>
             <span>Schedule Call</span>
