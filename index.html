@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Business Card — Studio Editor</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link id="dynamicGoogleFontsLink" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- QR Code Generator CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .hairline {
+      border-color: rgba(226, 232, 240, 0.8);
+    }
+    .dark .hairline {
+      border-color: rgba(30, 41, 59, 0.8);
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.25);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.4);
+    }
+
+    /* PRESET HEADER GRAPHICS */
+    .bg-grid-cyber {
+      background-color: #050b14;
+      background-image: 
+        linear-gradient(to right, rgba(0, 243, 255, 0.25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 243, 255, 0.25) 1px, transparent 1px),
+        radial-gradient(ellipse at 50% 100%, rgba(255, 0, 127, 0.45) 0%, transparent 75%);
+      background-size: 24px 24px, 24px 24px, 100% 100%;
+    }
+
+    @keyframes rainbowMeshShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .bg-rainbow-animated {
+      background: linear-gradient(-45deg, #ff0055, #ff5b00, #ffea00, #00e5ff, #7000ff, #ff00ab);
+      background-size: 300% 300%;
+      animation: rainbowMeshShift 8s ease infinite;
+    }
+
+    .bg-weather-dusk {
+      background: radial-gradient(circle at 20% 20%, rgba(245, 158, 11, 0.85), transparent 50%),
+                  radial-gradient(circle at 80% 70%, rgba(244, 63, 94, 0.8), transparent 60%),
+                  linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #701a75 100%);
+    }
+
+    /* CUSTOM COLOR VARIABLE UTILITIES */
+    .card-heading { color: var(--color-heading, inherit); }
+    .card-text { color: var(--color-text, inherit); }
+    .card-muted { color: var(--color-muted, inherit); }
+    .card-accent { color: var(--color-accent, inherit); }
+  </style>
+</head>
+
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col transition-colors duration-200 selection:bg-cyan-500 selection:text-black">
+
+  <!-- ==================================================== -->
+  <!-- TOP STUDIO TOOLBAR -->
+  <!-- ==================================================== -->
+  <header class="h-14 border-b hairline bg-slate-900/90 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-pink-500 p-0.5 shadow-lg shadow-cyan-500/20">
+        <div class="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center font-mono font-bold text-xs text-cyan-400">
+          S
+        </div>
+      </div>
+      <div>
+        <h1 class="text-xs font-semibold tracking-wider uppercase font-mono text-white flex items-center gap-2">
+          <span>Card Studio Pro</span>
+          <span class="px-1.5 py-0.5 text-[9px] rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60">v3.2</span>
+        </h1>
+        <p class="text-[10px] text-slate-400 font-mono hidden sm:block">Modular Micro-Site &amp; Card Generator</p>
+      </div>
+    </div>
+
+    <!-- Mobile Panel Viewport Switcher -->
+    <div class="flex sm:hidden items-center p-0.5 rounded-lg bg-slate-800 text-xs font-medium">
+      <button id="mobileTabEditor" onclick="switchMobileTab('editor')" class="px-3 py-1 rounded-md text-white bg-slate-700 shadow-sm transition-all">
+        Editor
+      </button>
+      <button id="mobileTabPreview" onclick="switchMobileTab('preview')" class="px-3 py-1 rounded-md text-slate-400 transition-all">
+        Preview
+      </button>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2">
+      <button onclick="resetToDefault()" title="Reset to default sample data" class="p-2 text-slate-400 hover:text-white transition-colors text-xs flex items-center gap-1">
+        <i class="fa-solid fa-rotate-left"></i>
+        <span class="hidden md:inline font-mono text-[11px]">Reset</span>
+      </button>
+
+      <label class="cursor-pointer p-2 text-slate-400 hover:text-white transition-colors text-xs flex items-center gap-1" title="Import JSON config">
+        <i class="fa-solid fa-file-import"></i>
+        <span class="hidden md:inline font-mono text-[11px]">Import</span>
+        <input type="file" accept=".json" onchange="importJSON(event)" class="hidden">
+      </label>
+
+      <button onclick="exportJSON()" title="Export JSON config backup" class="p-2 text-slate-400 hover:text-white transition-colors text-xs flex items-center gap-1">
+        <i class="fa-solid fa-file-export"></i>
+        <span class="hidden md:inline font-mono text-[11px]">JSON</span>
+      </button>
+
+      <div class="h-4 w-px bg-slate-800 mx-1"></div>
+
+      <button onclick="copyHTMLCode()" class="px-3 py-1.5 rounded-lg border border-slate-700 hover:border-slate-500 text-xs font-mono transition-all flex items-center gap-1.5 text-slate-300">
+        <i class="fa-regular fa-copy text-xs"></i>
+        <span class="hidden sm:inline">Copy HTML</span>
+      </button>
+
+      <button onclick="downloadIndexHTML()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-1.5">
+        <i class="fa-solid fa-download text-xs"></i>
+        <span>Export index.html</span>
+      </button>
+    </div>
+  </header>
+
+
+  <!-- ==================================================== -->
+  <!-- MAIN SPLIT WORKSPACE -->
+  <!-- ==================================================== -->
+  <div class="flex-1 grid grid-cols-1 sm:grid-cols-12 h-[calc(100vh-3.5rem)] overflow-hidden">
+
+    <!-- LEFT PANEL: CONTROL CENTER -->
+    <aside id="editorPanel" class="sm:col-span-6 lg:col-span-5 border-r hairline bg-slate-900/95 overflow-y-auto flex flex-col">
+      
+      <!-- NAVIGATION TABS -->
+      <div class="flex border-b hairline bg-slate-950/60 sticky top-0 z-20 overflow-x-auto">
+        <button id="navTab-profile" onclick="switchNavTab('profile')" class="py-3 px-3 text-xs font-mono font-medium text-cyan-400 border-b-2 border-cyan-400 flex items-center justify-center gap-1.5 transition-all shrink-0">
+          <i class="fa-solid fa-user-gear"></i>
+          <span>Identity &amp; SEO</span>
+        </button>
+        <button id="navTab-sections" onclick="switchNavTab('sections')" class="py-3 px-3 text-xs font-mono font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all shrink-0">
+          <i class="fa-solid fa-layer-group"></i>
+          <span>Sections</span>
+        </button>
+        <button id="navTab-works" onclick="switchNavTab('works')" class="py-3 px-3 text-xs font-mono font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all shrink-0">
+          <i class="fa-solid fa-folder-open"></i>
+          <span>Works</span>
+        </button>
+        <button id="navTab-socials" onclick="switchNavTab('socials')" class="py-3 px-3 text-xs font-mono font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all shrink-0">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span>Socials</span>
+        </button>
+        <button id="navTab-design" onclick="switchNavTab('design')" class="py-3 px-3 text-xs font-mono font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all shrink-0">
+          <i class="fa-solid fa-palette"></i>
+          <span>Theme &amp; Fonts</span>
+        </button>
+      </div>
+
+      <!-- FORM CONTENT WRAPPER -->
+      <div class="p-4 sm:p-6 space-y-6 flex-1">
+
+        <!-- ==================================================== -->
+        <!-- TAB 1: IDENTITY & SEO / OPENGRAPH -->
+        <!-- ==================================================== -->
+        <div id="tabContent-profile" class="space-y-6">
+          
+          <!-- Profile Section -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b hairline">
+              <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                <span>Personal &amp; Contact Info</span>
+              </h2>
+              <button onclick="saveDraft()" class="text-xs font-mono text-cyan-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-floppy-disk"></i> Save Draft
+              </button>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Full Name</label>
+                <input type="text" id="input-name" oninput="updateData('name', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Role / Headline</label>
+                <input type="text" id="input-title" oninput="updateData('title', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Location &amp; Timezone</label>
+                <input type="text" id="input-location" oninput="updateData('location', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-mono text-slate-400 mb-1">Display Email</label>
+                  <input type="email" id="input-email" oninput="updateData('email', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-mono text-slate-400 mb-1">Display Phone</label>
+                  <input type="text" id="input-phone" oninput="updateData('phone', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">vCard Phone (+International e.g. +14155550199)</label>
+                <input type="text" id="input-vcardPhone" oninput="updateData('vcardPhone', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Calendly / Booking URL</label>
+                <input type="url" id="input-calendly" oninput="updateData('calendly', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- OpenGraph & SEO Section -->
+          <div class="space-y-3 pt-2">
+            <div class="pb-2 border-b hairline flex items-center justify-between">
+              <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                <span>SEO &amp; OpenGraph Social Sharing</span>
+              </h2>
+            </div>
+
+            <p class="text-[10px] text-slate-400 font-mono leading-relaxed">
+              Configures social media preview cards when texting or sharing your card link on iMessage, WhatsApp, LinkedIn, or X.
+            </p>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Meta / OpenGraph Title</label>
+                <input type="text" id="input-ogTitle" placeholder="Default: [Name] — [Title]" oninput="updateData('ogTitle', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Meta / OpenGraph Description</label>
+                <textarea rows="2" id="input-ogDescription" placeholder="Default: Auto-generated from Bio or Headline" oninput="updateData('ogDescription', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500 leading-relaxed"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">OpenGraph Image Thumbnail URL</label>
+                <input type="url" id="input-ogImage" placeholder="https://example.com/social-preview.jpg" oninput="updateData('ogImage', this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500">
+                <p class="text-[10px] text-slate-500 font-mono mt-1">Leave blank to fallback to Header Banner or default profile avatar.</p>
+              </div>
+
+              <!-- PWA Offline Support Toggle -->
+              <div class="p-3 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-between">
+                <div>
+                  <label class="text-xs font-mono font-semibold text-white block">Offline PWA &amp; Service Worker</label>
+                  <p class="text-[10px] text-slate-400 font-mono">Embeds inline offline caching for spotty event network connections.</p>
+                </div>
+                <input type="checkbox" id="input-pwaEnabled" onchange="updateData('pwaEnabled', this.checked)" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- TAB 2: SECTIONS MANAGER -->
+        <!-- ==================================================== -->
+        <div id="tabContent-sections" class="space-y-5 hidden">
+          <div class="flex items-center justify-between pb-2 border-b hairline">
+            <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>Section Visibility &amp; Ordering</span>
+            </h2>
+          </div>
+
+          <p class="text-[11px] text-slate-400 font-mono">
+            Enable/disable sections, edit section headers, and change display order on your page.
+          </p>
+
+          <div id="sectionsListContainer" class="space-y-3">
+            <!-- Dynamic Sections Manager List -->
+          </div>
+
+          <button onclick="addCustomSection()" class="w-full py-2.5 border border-dashed border-slate-700 hover:border-cyan-500 rounded-lg text-xs font-mono text-slate-300 hover:text-cyan-400 transition-colors flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Add Custom Text Section</span>
+          </button>
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- TAB 3: WORKS MANAGER -->
+        <!-- ==================================================== -->
+        <div id="tabContent-works" class="space-y-5 hidden">
+          <div class="flex items-center justify-between pb-2 border-b hairline">
+            <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+              <span>Selected Works &amp; Projects</span>
+            </h2>
+          </div>
+
+          <div id="worksFormContainer" class="space-y-4">
+            <!-- Dynamically populated work items -->
+          </div>
+
+          <button onclick="addWorkItem()" class="w-full py-2.5 border border-dashed border-slate-700 hover:border-cyan-500 rounded-lg text-xs font-mono text-slate-300 hover:text-cyan-400 transition-colors flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Add Work Item</span>
+          </button>
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- TAB 4: SOCIAL LINKS MANAGER -->
+        <!-- ==================================================== -->
+        <div id="tabContent-socials" class="space-y-5 hidden">
+          <div class="flex items-center justify-between pb-2 border-b hairline">
+            <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+              <span>Social Links &amp; Profiles</span>
+            </h2>
+          </div>
+
+          <p class="text-[11px] text-slate-400 font-mono">
+            Customize platform icons, labels, and order for social profiles.
+          </p>
+
+          <div id="socialsFormContainer" class="space-y-3">
+            <!-- Dynamically populated social links -->
+          </div>
+
+          <button onclick="addSocialLink()" class="w-full py-2.5 border border-dashed border-slate-700 hover:border-cyan-500 rounded-lg text-xs font-mono text-slate-300 hover:text-cyan-400 transition-colors flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Add Social Link</span>
+          </button>
+        </div>
+
+
+        <!-- ==================================================== -->
+        <!-- TAB 5: DESIGN, THEMES, FONTS & HEADER -->
+        <!-- ==================================================== -->
+        <div id="tabContent-design" class="space-y-6 hidden">
+          
+          <!-- 1. FONT SELECTION -->
+          <div class="space-y-3">
+            <div class="pb-2 border-b hairline">
+              <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>Typography &amp; Fonts</span>
+              </h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Heading Font</label>
+                <select id="input-headingFont" onchange="updateData('headingFont', this.value)" class="w-full px-2.5 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500 font-mono">
+                  <option value="Inter">Inter (Sans)</option>
+                  <option value="Space Grotesk">Space Grotesk (Tech)</option>
+                  <option value="Playfair Display">Playfair Display (Editorial)</option>
+                  <option value="Syne">Syne (Modern Display)</option>
+                  <option value="JetBrains Mono">JetBrains Mono (Monospace)</option>
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans (Clean)</option>
+                  <option value="Newsreader">Newsreader (Serif)</option>
+                  <option value="Outfit">Outfit (Geometric)</option>
+                  <option value="Cinzel">Cinzel (Luxury Serif)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Body Text Font</label>
+                <select id="input-bodyFont" onchange="updateData('bodyFont', this.value)" class="w-full px-2.5 py-2 text-xs rounded-lg border border-slate-800 bg-slate-950 text-white focus:outline-none focus:border-cyan-500 font-mono">
+                  <option value="Inter">Inter (Sans)</option>
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans (Sans)</option>
+                  <option value="JetBrains Mono">JetBrains Mono (Monospace)</option>
+                  <option value="Newsreader">Newsreader (Serif)</option>
+                  <option value="Outfit">Outfit (Clean)</option>
+                  <option value="Space Grotesk">Space Grotesk (Display)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. THEME PRESETS -->
+          <div class="space-y-3 pt-2">
+            <div class="pb-2 border-b hairline">
+              <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                <span>Visual Theme Preset</span>
+              </h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <button onclick="selectTheme('editorial')" id="themeBtn-editorial" class="p-3 rounded-xl border text-left transition-all border-slate-800 bg-slate-950 hover:border-slate-700">
+                <div class="text-xs font-mono font-semibold text-white flex items-center justify-between">
+                  <span>Editorial</span>
+                  <span class="text-[10px] text-slate-500 font-mono">Clean</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Light background with crisp typography.</p>
+                <div class="mt-2 h-1.5 w-full bg-slate-200 rounded-full"></div>
+              </button>
+
+              <button onclick="selectTheme('cyber')" id="themeBtn-cyber" class="p-3 rounded-xl border text-left transition-all border-cyan-500/40 bg-slate-950 hover:border-cyan-400">
+                <div class="text-xs font-mono font-semibold text-cyan-400 flex items-center justify-between">
+                  <span>Cyber Sci-Fi</span>
+                  <span class="text-[10px] text-cyan-500/80 font-mono">Neon</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Obsidian background, cyan &amp; magenta grid.</p>
+                <div class="mt-2 h-1.5 w-full bg-gradient-to-r from-cyan-400 to-pink-500 rounded-full"></div>
+              </button>
+
+              <button onclick="selectTheme('rainbow')" id="themeBtn-rainbow" class="p-3 rounded-xl border text-left transition-all border-slate-800 bg-slate-950 hover:border-slate-700">
+                <div class="text-xs font-mono font-semibold text-pink-400 flex items-center justify-between">
+                  <span>Rainbow Mesh</span>
+                  <span class="text-[10px] text-pink-500/80 font-mono">Vibrant</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Flowing liquid rainbow gradient spectrum.</p>
+                <div class="mt-2 h-1.5 w-full bg-gradient-to-r from-pink-500 via-amber-400 to-cyan-400 rounded-full"></div>
+              </button>
+
+              <button onclick="selectTheme('atmospheric')" id="themeBtn-atmospheric" class="p-3 rounded-xl border text-left transition-all border-slate-800 bg-slate-950 hover:border-slate-700">
+                <div class="text-xs font-mono font-semibold text-amber-400 flex items-center justify-between">
+                  <span>Weather Dusk</span>
+                  <span class="text-[10px] text-amber-500/80 font-mono">Sunset</span>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1 leading-tight">Twilight indigo &amp; warm sunset glow.</p>
+                <div class="mt-2 h-1.5 w-full bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-900 rounded-full"></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. CUSTOM FONT & ACCENT COLOR PICKERS -->
+          <div class="space-y-4 pt-2">
+            <div class="pb-2 border-b hairline flex items-center justify-between">
+              <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>Font &amp; Accent Color Customization</span>
+              </h2>
+              <button onclick="resetColorsToTheme()" class="text-[10px] font-mono text-cyan-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-rotate-left"></i> Reset Colors
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-mono text-slate-400 mb-1">Heading Color</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="input-headingColor" onchange="updateData('headingColor', this.value)" class="w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer p-0.5">
+                  <span id="headingColorHex" class="text-xs font-mono text-slate-300">#ffffff</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-mono text-slate-400 mb-1">Body Text Color</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="input-bodyTextColor" onchange="updateData('bodyTextColor', this.value)" class="w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer p-0.5">
+                  <span id="bodyTextColorHex" class="text-xs font-mono text-slate-300">#cbd5e1</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-mono text-slate-400 mb-1">Muted / Subtitle Color</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="input-mutedTextColor" onchange="updateData('mutedTextColor', this.value)" class="w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer p-0.5">
+                  <span id="mutedTextColorHex" class="text-xs font-mono text-slate-300">#64748b</span>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-mono text-slate-400 mb-1">Primary Accent Color</label>
+                <div class="flex items-center gap-2">
+                  <input type="color" id="input-accentColor" onchange="updateData('accentColor', this.value)" class="w-8 h-8 rounded-lg border border-slate-800 bg-slate-950 cursor-pointer p-0.5">
+                  <span id="accentHexLabel" class="text-xs font-mono text-cyan-400 font-semibold">#06b6d4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. SPECIAL HEADER SECTION -->
+          <div class="space-y-4 pt-2">
+            <div class="pb-2 border-b hairline">
+              <h2 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                <span>Header Banner Customization</span>
+              </h2>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-[11px] font-mono text-slate-400">Header Display Mode</label>
+              <div class="grid grid-cols-3 gap-2">
+                <button onclick="setHeaderMode('none')" id="headerModeBtn-none" class="py-2 px-3 rounded-lg border text-xs font-mono border-cyan-500 bg-cyan-950/40 text-cyan-400 transition-all">
+                  None
+                </button>
+                <button onclick="setHeaderMode('preset')" id="headerModeBtn-preset" class="py-2 px-3 rounded-lg border text-xs font-mono border-slate-800 bg-slate-950 text-slate-400 hover:text-white transition-all">
+                  Preset Graphic
+                </button>
+                <button onclick="setHeaderMode('custom')" id="headerModeBtn-custom" class="py-2 px-3 rounded-lg border text-xs font-mono border-slate-800 bg-slate-950 text-slate-400 hover:text-white transition-all">
+                  Upload Photo
+                </button>
+              </div>
+            </div>
+
+            <div id="headerOptions-preset" class="space-y-3 hidden bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+              <label class="block text-[11px] font-mono text-slate-400 mb-1">Select Preset Banner Graphic</label>
+              <div class="grid grid-cols-2 gap-2">
+                <!-- Sci-Fi Grid -->
+                <button onclick="setPresetHeader('cyber-grid')" id="presetHeaderBtn-cyber-grid" class="p-2.5 rounded-lg border text-left border-cyan-500/80 bg-slate-900 transition-all">
+                  <div class="h-10 rounded bg-grid-cyber border border-cyan-500/40 mb-1.5 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-[9px] font-mono font-bold text-cyan-300 drop-shadow">SCI-FI GRID</span>
+                  </div>
+                  <span class="text-[11px] font-mono text-white block">Sci-Fi Grid</span>
+                </button>
+
+                <!-- Rainbow Mesh -->
+                <button onclick="setPresetHeader('rainbow-flow')" id="presetHeaderBtn-rainbow-flow" class="p-2.5 rounded-lg border text-left border-slate-800 bg-slate-900 transition-all">
+                  <div class="h-10 rounded bg-rainbow-animated mb-1.5 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-[9px] font-mono text-slate-950 font-extrabold drop-shadow-sm">RAINBOW MESH</span>
+                  </div>
+                  <span class="text-[11px] font-mono text-white block">Rainbow Mesh</span>
+                </button>
+
+                <!-- Weather Dusk -->
+                <button onclick="setPresetHeader('weather-dusk')" id="presetHeaderBtn-weather-dusk" class="p-2.5 rounded-lg border text-left border-slate-800 bg-slate-900 transition-all">
+                  <div class="h-10 rounded bg-weather-dusk mb-1.5 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-[9px] font-mono text-amber-200 font-bold drop-shadow">WEATHER DUSK</span>
+                  </div>
+                  <span class="text-[11px] font-mono text-white block">Weather Dusk</span>
+                </button>
+
+                <!-- Accent Solid/Gradient -->
+                <button onclick="setPresetHeader('accent-gradient')" id="presetHeaderBtn-accent-gradient" class="p-2.5 rounded-lg border text-left border-slate-800 bg-slate-900 transition-all">
+                  <div class="h-10 rounded bg-gradient-to-tr from-cyan-500 via-blue-700 to-slate-950 mb-1.5 flex items-center justify-center relative overflow-hidden">
+                    <span class="text-[9px] font-mono text-white font-bold drop-shadow">ACCENT GRADIENT</span>
+                  </div>
+                  <span class="text-[11px] font-mono text-white block">Accent Solid</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="headerOptions-custom" class="space-y-3.5 hidden bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+              <div>
+                <label class="block text-[11px] font-mono text-slate-400 mb-1">Upload Header Image (JPG, PNG, WebP)</label>
+                <input type="file" accept="image/*" onchange="handleHeaderImageUpload(event)" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-mono file:bg-slate-800 file:text-cyan-400 hover:file:bg-slate-700 cursor-pointer">
+                <p class="text-[10px] text-slate-500 font-mono mt-1">Converts photo to Base64 for zero external link dependencies.</p>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
+                  <span>Banner Height</span>
+                  <span id="bannerHeightLabel" class="text-white">180px</span>
+                </div>
+                <input type="range" min="120" max="300" step="10" id="input-bannerHeight" value="180" oninput="updateHeaderHeight(this.value)" class="w-full accent-cyan-500 bg-slate-800 rounded">
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
+                  <span>Overlay Darkening</span>
+                  <span id="bannerOverlayLabel" class="text-white">30%</span>
+                </div>
+                <input type="range" min="0" max="0.8" step="0.05" id="input-bannerOverlay" value="0.3" oninput="updateHeaderOverlay(this.value)" class="w-full accent-cyan-500 bg-slate-800 rounded">
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </aside>
+
+
+    <!-- RIGHT PANEL: REAL-TIME PREVIEW CANVAS -->
+    <main id="previewPanel" class="hidden sm:block sm:col-span-6 lg:col-span-7 bg-slate-950/80 p-4 sm:p-6 overflow-y-auto relative">
+      
+      <!-- Preview Frame Toolbar -->
+      <div class="max-w-xl mx-auto mb-3 flex items-center justify-between text-xs font-mono text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>LIVE PREVIEW</span>
+        </div>
+
+        <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border hairline shadow-sm">
+          <button id="viewMobileBtn" onclick="setPreviewWidth('mobile')" class="px-2.5 py-1 rounded text-[11px] bg-slate-800 text-white font-mono">
+            📱 Mobile
+          </button>
+          <button id="viewFullBtn" onclick="setPreviewWidth('full')" class="px-2.5 py-1 rounded text-[11px] text-slate-400 hover:text-white font-mono">
+            💻 Desktop
+          </button>
+        </div>
+      </div>
+
+      <!-- Device Viewport Container -->
+      <div id="previewContainer" class="max-w-[380px] mx-auto transition-all duration-300 shadow-2xl rounded-2xl border hairline overflow-hidden bg-slate-950 min-h-[720px] relative">
+        <div id="previewCardBody" class="text-slate-200">
+          <!-- Dynamically Rendered Live Content -->
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-cyan-500 text-slate-950 font-bold text-xs font-mono shadow-2xl opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2">
+    <i class="fa-solid fa-circle-check text-slate-950"></i>
+    <span id="toastMessage">Action completed</span>
+  </div>
+
+
+  <!-- ==================================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <!-- ==================================================== -->
+  <script>
+    // Platform Icon Lookup Map
+    const platformIcons = {
+      github: "fa-brands fa-github",
+      linkedin: "fa-brands fa-linkedin",
+      x: "fa-brands fa-x-twitter",
+      instagram: "fa-brands fa-instagram",
+      facebook: "fa-brands fa-facebook",
+      youtube: "fa-brands fa-youtube",
+      tiktok: "fa-brands fa-tiktok",
+      bluesky: "fa-solid fa-cloud",
+      threads: "fa-brands fa-threads",
+      substack: "fa-solid fa-newspaper",
+      medium: "fa-brands fa-medium",
+      discord: "fa-brands fa-discord",
+      whatsapp: "fa-brands fa-whatsapp",
+      spotify: "fa-brands fa-spotify",
+      behance: "fa-brands fa-behance",
+      dribbble: "fa-brands fa-dribbble",
+      custom: "fa-solid fa-globe"
+    };
+
+    // Theme Color Presets Mapping
+    const themeDefaultColors = {
+      editorial: {
+        headingColor: "#0f172a",
+        bodyTextColor: "#334155",
+        mutedTextColor: "#64748b",
+        accentColor: "#2563eb"
+      },
+      cyber: {
+        headingColor: "#ffffff",
+        bodyTextColor: "#cbd5e1",
+        mutedTextColor: "#64748b",
+        accentColor: "#06b6d4"
+      },
+      rainbow: {
+        headingColor: "#ffffff",
+        bodyTextColor: "#fbcfe8",
+        mutedTextColor: "#f472b6",
+        accentColor: "#ff007f"
+      },
+      atmospheric: {
+        headingColor: "#fffbeb",
+        bodyTextColor: "#fef3c7",
+        mutedTextColor: "#d97706",
+        accentColor: "#f59e0b"
+      }
+    };
+
+    // Default Initial Data
+    const defaultData = {
+      name: "Alex Rivera",
+      title: "Senior Product Designer & Frontend Engineer",
+      location: "San Francisco, CA • UTC-7",
+      email: "alex.rivera@example.com",
+      phone: "+1 (415) 555-0199",
+      vcardPhone: "+14155550199",
+      calendly: "https://calendly.com",
+
+      // SEO & OpenGraph & PWA
+      ogTitle: "",
+      ogDescription: "",
+      ogImage: "",
+      pwaEnabled: true,
+      
+      // Fonts
+      headingFont: "Space Grotesk",
+      bodyFont: "Inter",
+
+      // Themes & Colors
+      theme: "cyber",
+      headingColor: "#ffffff",
+      bodyTextColor: "#cbd5e1",
+      mutedTextColor: "#64748b",
+      accentColor: "#06b6d4",
+
+      // Header Banners
+      headerMode: "preset",
+      presetHeader: "cyber-grid",
+      customHeaderImage: "",
+      bannerHeight: 160,
+      bannerOverlay: 0.3,
+
+      // Sections Architecture
+      sections: [
+        { id: "bio", enabled: true, title: "01 / FOCUS & BIO", content: "Crafting elegant, performant digital products at the intersection of UI design, frontend architecture, and practical AI integrations. I focus on extreme minimalism, sub-second load times, and interfaces that feel effortless." },
+        { id: "works", enabled: true, title: "02 / SELECTED WORK", content: "" },
+        { id: "connect", enabled: true, title: "03 / CONNECT & NOTES", content: "Open for technical advising, design system architecture, and selective contract opportunities." }
+      ],
+
+      // Selected Works Data
+      works: [
+        { title: "Nexus Flow AI", year: "2024", desc: "Design token engine converting Figma variables into clean Tailwind CSS modules automatically.", url: "https://example.com" },
+        { title: "Fintech Analytics Platform", year: "2023 — Present", desc: "Lead product design & frontend architecture for high-frequency financial analytics.", url: "https://example.com" },
+        { title: "Minimal UI Kit", year: "2022", desc: "Open-source lightweight UI component library with WCAG AAA accessibility.", url: "https://example.com" }
+      ],
+
+      // Dynamic Social Profile Links
+      socials: [
+        { id: "s1", platform: "github", label: "GitHub", url: "https://github.com", enabled: true },
+        { id: "s2", platform: "linkedin", label: "LinkedIn", url: "https://linkedin.com", enabled: true },
+        { id: "s3", platform: "x", label: "X / Twitter", url: "https://x.com", enabled: true },
+        { id: "s4", platform: "instagram", label: "Instagram", url: "https://instagram.com", enabled: false }
+      ]
+    };
+
+    let cardData = JSON.parse(JSON.stringify(defaultData));
+
+    window.onload = function() {
+      const savedDraft = localStorage.getItem('cardStudioDraft_v3');
+      if (savedDraft) {
+        try {
+          cardData = JSON.parse(savedDraft);
+        } catch(e) {
+          console.error("Could not parse draft:", e);
+        }
+      }
+      populateForm();
+      renderSectionsForm();
+      renderWorksForm();
+      renderSocialsForm();
+      renderPreview();
+    };
+
+    // Navigation Tab Switches
+    function switchNavTab(tab) {
+      ['profile', 'sections', 'works', 'socials', 'design'].forEach(t => {
+        const btn = document.getElementById(`navTab-${t}`);
+        const content = document.getElementById(`tabContent-${t}`);
+        if (t === tab) {
+          btn.className = "py-3 px-3 text-xs font-mono font-medium text-cyan-400 border-b-2 border-cyan-400 flex items-center justify-center gap-1.5 transition-all shrink-0";
+          content.classList.remove('hidden');
+        } else {
+          btn.className = "py-3 px-3 text-xs font-mono font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 flex items-center justify-center gap-1.5 transition-all shrink-0";
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    // Input Update Handler
+    function updateData(key, value) {
+      cardData[key] = value;
+      if (key === 'headingColor') {
+        document.getElementById('headingColorHex').innerText = value;
+      } else if (key === 'bodyTextColor') {
+        document.getElementById('bodyTextColorHex').innerText = value;
+      } else if (key === 'mutedTextColor') {
+        document.getElementById('mutedTextColorHex').innerText = value;
+      } else if (key === 'accentColor') {
+        document.getElementById('accentHexLabel').innerText = value;
+      }
+      renderPreview();
+    }
+
+    function populateForm() {
+      document.getElementById('input-name').value = cardData.name || '';
+      document.getElementById('input-title').value = cardData.title || '';
+      document.getElementById('input-location').value = cardData.location || '';
+      document.getElementById('input-email').value = cardData.email || '';
+      document.getElementById('input-phone').value = cardData.phone || '';
+      document.getElementById('input-vcardPhone').value = cardData.vcardPhone || '';
+      document.getElementById('input-calendly').value = cardData.calendly || '';
+
+      document.getElementById('input-ogTitle').value = cardData.ogTitle || '';
+      document.getElementById('input-ogDescription').value = cardData.ogDescription || '';
+      document.getElementById('input-ogImage').value = cardData.ogImage || '';
+      document.getElementById('input-pwaEnabled').checked = cardData.pwaEnabled !== false;
+
+      document.getElementById('input-headingFont').value = cardData.headingFont || 'Space Grotesk';
+      document.getElementById('input-bodyFont').value = cardData.bodyFont || 'Inter';
+
+      selectTheme(cardData.theme || 'cyber', false);
+
+      document.getElementById('input-headingColor').value = cardData.headingColor || '#ffffff';
+      document.getElementById('headingColorHex').innerText = cardData.headingColor || '#ffffff';
+      document.getElementById('input-bodyTextColor').value = cardData.bodyTextColor || '#cbd5e1';
+      document.getElementById('bodyTextColorHex').innerText = cardData.bodyTextColor || '#cbd5e1';
+      document.getElementById('input-mutedTextColor').value = cardData.mutedTextColor || '#64748b';
+      document.getElementById('mutedTextColorHex').innerText = cardData.mutedTextColor || '#64748b';
+      document.getElementById('input-accentColor').value = cardData.accentColor || '#06b6d4';
+      document.getElementById('accentHexLabel').innerText = cardData.accentColor || '#06b6d4';
+
+      setHeaderMode(cardData.headerMode || 'none', false);
+      setPresetHeader(cardData.presetHeader || 'cyber-grid', false);
+      document.getElementById('input-bannerHeight').value = cardData.bannerHeight || 160;
+      document.getElementById('bannerHeightLabel').innerText = (cardData.bannerHeight || 160) + 'px';
+      document.getElementById('input-bannerOverlay').value = cardData.bannerOverlay || 0.3;
+      document.getElementById('bannerOverlayLabel').innerText = Math.round((cardData.bannerOverlay || 0.3) * 100) + '%';
+    }
+
+    // ====================================================
+    // SECTIONS MANAGER LOGIC
+    // ====================================================
+    function renderSectionsForm() {
+      const container = document.getElementById('sectionsListContainer');
+      container.innerHTML = '';
+
+      cardData.sections.forEach((sec, idx) => {
+        const div = document.createElement('div');
+        div.className = "p-3 rounded-xl border border-slate-800 bg-slate-950 space-y-2 relative";
+        
+        const isCustom = sec.id.startsWith('custom_');
+
+        div.innerHTML = `
+          <div class="flex items-center justify-between pb-1 border-b hairline">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" ${sec.enabled ? 'checked' : ''} onchange="toggleSectionEnabled(${idx}, this.checked)" class="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer">
+              <span class="font-mono text-[11px] font-semibold text-white uppercase">${sec.id} Section</span>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button onclick="moveSection(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-30"' : ''} class="p-1 text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+              <button onclick="moveSection(${idx}, 1)" ${idx === cardData.sections.length - 1 ? 'disabled class="opacity-30"' : ''} class="p-1 text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-arrow-down"></i>
+              </button>
+              ${isCustom ? `
+                <button onclick="deleteSection(${idx})" class="p-1 text-rose-400 hover:text-rose-300 text-xs ml-1">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-mono text-slate-400">Header Label</label>
+            <input type="text" value="${escapeAttr(sec.title)}" oninput="updateSectionTitle(${idx}, this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white focus:border-cyan-500">
+          </div>
+
+          ${sec.id !== 'works' ? `
+            <div>
+              <label class="block text-[10px] font-mono text-slate-400">Content / Paragraph Text</label>
+              <textarea rows="3" oninput="updateSectionContent(${idx}, this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white focus:border-cyan-500 leading-relaxed">${escapeHtml(sec.content)}</textarea>
+            </div>
+          ` : `
+            <p class="text-[10px] text-slate-500 font-mono italic">Content for 'Works' is managed in the 'Works' tab.</p>
+          `}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleSectionEnabled(idx, checked) {
+      cardData.sections[idx].enabled = checked;
+      renderPreview();
+    }
+
+    function updateSectionTitle(idx, val) {
+      cardData.sections[idx].title = val;
+      renderPreview();
+    }
+
+    function updateSectionContent(idx, val) {
+      cardData.sections[idx].content = val;
+      renderPreview();
+    }
+
+    function moveSection(idx, dir) {
+      const target = idx + dir;
+      if (target < 0 || target >= cardData.sections.length) return;
+      const temp = cardData.sections[idx];
+      cardData.sections[idx] = cardData.sections[target];
+      cardData.sections[target] = temp;
+      renderSectionsForm();
+      renderPreview();
+    }
+
+    function addCustomSection() {
+      const newId = 'custom_' + Date.now();
+      cardData.sections.push({
+        id: newId,
+        enabled: true,
+        title: `0${cardData.sections.length + 1} / NEW SECTION`,
+        content: "Custom text section content goes here."
+      });
+      renderSectionsForm();
+      renderPreview();
+    }
+
+    function deleteSection(idx) {
+      cardData.sections.splice(idx, 1);
+      renderSectionsForm();
+      renderPreview();
+    }
+
+    // ====================================================
+    // WORKS & SOCIALS LOGIC
+    // ====================================================
+    function renderWorksForm() {
+      const container = document.getElementById('worksFormContainer');
+      container.innerHTML = '';
+
+      cardData.works.forEach((work, index) => {
+        const div = document.createElement('div');
+        div.className = "p-3 rounded-xl border border-slate-800 bg-slate-950 space-y-2 relative group";
+        div.innerHTML = `
+          <div class="flex items-center justify-between pb-1 border-b hairline">
+            <span class="font-mono text-[10px] text-cyan-400 uppercase">Item #${index + 1}</span>
+            <div class="flex items-center gap-1">
+              <button onclick="moveWork(${index}, -1)" ${index === 0 ? 'disabled class="opacity-30"' : ''} class="p-1 text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+              <button onclick="moveWork(${index}, 1)" ${index === cardData.works.length - 1 ? 'disabled class="opacity-30"' : ''} class="p-1 text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-arrow-down"></i>
+              </button>
+              <button onclick="deleteWork(${index})" class="p-1 text-rose-400 hover:text-rose-300 text-xs ml-1">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2">
+            <div class="col-span-2">
+              <label class="block text-[10px] font-mono text-slate-400">Title</label>
+              <input type="text" value="${escapeAttr(work.title)}" oninput="updateWork(${index}, 'title', this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white">
+            </div>
+            <div>
+              <label class="block text-[10px] font-mono text-slate-400">Year / Tag</label>
+              <input type="text" value="${escapeAttr(work.year)}" oninput="updateWork(${index}, 'year', this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-mono text-slate-400">Description</label>
+            <input type="text" value="${escapeAttr(work.desc)}" oninput="updateWork(${index}, 'desc', this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-mono text-slate-400">Link URL</label>
+            <input type="url" value="${escapeAttr(work.url)}" oninput="updateWork(${index}, 'url', this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white">
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function addWorkItem() {
+      cardData.works.push({
+        title: "New Project",
+        year: new Date().getFullYear().toString(),
+        desc: "Brief summary of achievements or technology used.",
+        url: "https://example.com"
+      });
+      renderWorksForm();
+      renderPreview();
+    }
+
+    function updateWork(index, field, value) {
+      cardData.works[index][field] = value;
+      renderPreview();
+    }
+
+    function moveWork(index, direction) {
+      const target = index + direction;
+      if (target < 0 || target >= cardData.works.length) return;
+      const temp = cardData.works[index];
+      cardData.works[index] = cardData.works[target];
+      cardData.works[target] = temp;
+      renderWorksForm();
+      renderPreview();
+    }
+
+    function deleteWork(index) {
+      cardData.works.splice(index, 1);
+      renderWorksForm();
+      renderPreview();
+    }
+
+    function renderSocialsForm() {
+      const container = document.getElementById('socialsFormContainer');
+      container.innerHTML = '';
+
+      cardData.socials.forEach((soc, idx) => {
+        const div = document.createElement('div');
+        div.className = "p-3 rounded-xl border border-slate-800 bg-slate-950 space-y-2 relative";
+
+        const optionsHTML = Object.keys(platformIcons).map(p => `
+          <option value="${p}" ${soc.platform === p ? 'selected' : ''}>${p.toUpperCase()}</option>
+        `).join('');
+
+        div.innerHTML = `
+          <div class="flex items-center justify-between pb-1 border-b hairline">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" ${soc.enabled ? 'checked' : ''} onchange="toggleSocialEnabled(${idx}, this.checked)" class="rounded bg-slate-900 border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer">
+              <i class="${platformIcons[soc.platform] || 'fa-solid fa-globe'} text-xs text-cyan-400"></i>
+              <span class="font-mono text-[11px] text-white font-semibold">${escapeHtml(soc.label || soc.platform)}</span>
+            </div>
+
+            <div class="flex items-center gap-1">
+              <button onclick="moveSocial(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-30"' : ''} class="p-1 text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-arrow-up"></i>
+              </button>
+              <button onclick="moveSocial(${idx}, 1)" ${idx === cardData.socials.length - 1 ? 'disabled class="opacity-30"' : ''} class="p-1 text-slate-400 hover:text-white text-xs">
+                <i class="fa-solid fa-arrow-down"></i>
+              </button>
+              <button onclick="deleteSocial(${idx})" class="p-1 text-rose-400 hover:text-rose-300 text-xs ml-1">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[10px] font-mono text-slate-400">Platform Icon</label>
+              <select onchange="updateSocialPlatform(${idx}, this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white font-mono">
+                ${optionsHTML}
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-mono text-slate-400">Display Label</label>
+              <input type="text" value="${escapeAttr(soc.label)}" oninput="updateSocial(${idx}, 'label', this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-mono text-slate-400">Profile / Link URL</label>
+            <input type="url" value="${escapeAttr(soc.url)}" oninput="updateSocial(${idx}, 'url', this.value)" class="w-full px-2 py-1 text-xs rounded border border-slate-800 bg-slate-900 text-white">
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function toggleSocialEnabled(idx, checked) {
+      cardData.socials[idx].enabled = checked;
+      renderPreview();
+    }
+
+    function updateSocialPlatform(idx, platform) {
+      cardData.socials[idx].platform = platform;
+      renderSocialsForm();
+      renderPreview();
+    }
+
+    function updateSocial(idx, field, value) {
+      cardData.socials[idx][field] = value;
+      renderPreview();
+    }
+
+    function moveSocial(idx, dir) {
+      const target = idx + dir;
+      if (target < 0 || target >= cardData.socials.length) return;
+      const temp = cardData.socials[idx];
+      cardData.socials[idx] = cardData.socials[target];
+      cardData.socials[target] = temp;
+      renderSocialsForm();
+      renderPreview();
+    }
+
+    function addSocialLink() {
+      cardData.socials.push({
+        id: "s_" + Date.now(),
+        platform: "custom",
+        label: "Website",
+        url: "https://example.com",
+        enabled: true
+      });
+      renderSocialsForm();
+      renderPreview();
+    }
+
+    function deleteSocial(idx) {
+      cardData.socials.splice(idx, 1);
+      renderSocialsForm();
+      renderPreview();
+    }
+
+
+    // ====================================================
+    // THEME & COLOR CUSTOMIZATION LOGIC
+    // ====================================================
+    function selectTheme(themeKey, triggerRender = true) {
+      cardData.theme = themeKey;
+      ['editorial', 'cyber', 'rainbow', 'atmospheric'].forEach(t => {
+        const btn = document.getElementById(`themeBtn-${t}`);
+        if (t === themeKey) {
+          btn.className = "p-3 rounded-xl border text-left transition-all border-cyan-400 bg-slate-900 ring-1 ring-cyan-400 shadow-md shadow-cyan-500/10";
+        } else {
+          btn.className = "p-3 rounded-xl border text-left transition-all border-slate-800 bg-slate-950 hover:border-slate-700";
+        }
+      });
+
+      // Apply default colors for theme
+      if (themeDefaultColors[themeKey]) {
+        const defs = themeDefaultColors[themeKey];
+        cardData.headingColor = defs.headingColor;
+        cardData.bodyTextColor = defs.bodyTextColor;
+        cardData.mutedTextColor = defs.mutedTextColor;
+        cardData.accentColor = defs.accentColor;
+
+        document.getElementById('input-headingColor').value = defs.headingColor;
+        document.getElementById('headingColorHex').innerText = defs.headingColor;
+        document.getElementById('input-bodyTextColor').value = defs.bodyTextColor;
+        document.getElementById('bodyTextColorHex').innerText = defs.bodyTextColor;
+        document.getElementById('input-mutedTextColor').value = defs.mutedTextColor;
+        document.getElementById('mutedTextColorHex').innerText = defs.mutedTextColor;
+        document.getElementById('input-accentColor').value = defs.accentColor;
+        document.getElementById('accentHexLabel').innerText = defs.accentColor;
+      }
+
+      if (triggerRender) renderPreview();
+    }
+
+    function resetColorsToTheme() {
+      selectTheme(cardData.theme || 'cyber', true);
+      showToast("Colors reset to theme defaults!");
+    }
+
+    function setHeaderMode(mode, triggerRender = true) {
+      cardData.headerMode = mode;
+      ['none', 'preset', 'custom'].forEach(m => {
+        const btn = document.getElementById(`headerModeBtn-${m}`);
+        const opt = document.getElementById(`headerOptions-${m}`);
+        if (m === mode) {
+          btn.className = "py-2 px-3 rounded-lg border text-xs font-mono border-cyan-500 bg-cyan-950/40 text-cyan-400 transition-all";
+          if (opt) opt.classList.remove('hidden');
+        } else {
+          btn.className = "py-2 px-3 rounded-lg border text-xs font-mono border-slate-800 bg-slate-950 text-slate-400 hover:text-white transition-all";
+          if (opt) opt.classList.add('hidden');
+        }
+      });
+      if (triggerRender) renderPreview();
+    }
+
+    function setPresetHeader(presetKey, triggerRender = true) {
+      cardData.presetHeader = presetKey;
+      ['cyber-grid', 'rainbow-flow', 'weather-dusk', 'accent-gradient'].forEach(p => {
+        const btn = document.getElementById(`presetHeaderBtn-${p}`);
+        if (p === presetKey) {
+          btn.className = "p-2.5 rounded-lg border text-left border-cyan-400 bg-slate-900 transition-all ring-1 ring-cyan-400";
+        } else {
+          btn.className = "p-2.5 rounded-lg border text-left border-slate-800 bg-slate-900 transition-all";
+        }
+      });
+      if (triggerRender) renderPreview();
+    }
+
+    function handleHeaderImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        cardData.customHeaderImage = e.target.result;
+        renderPreview();
+        showToast("Header image converted to Base64!");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateHeaderHeight(val) {
+      cardData.bannerHeight = parseInt(val);
+      document.getElementById('bannerHeightLabel').innerText = val + 'px';
+      renderPreview();
+    }
+
+    function updateHeaderOverlay(val) {
+      cardData.bannerOverlay = parseFloat(val);
+      document.getElementById('bannerOverlayLabel').innerText = Math.round(val * 100) + '%';
+      renderPreview();
+    }
+
+    function getHeaderGraphicHTML(d) {
+      if (d.headerMode === 'none') return '';
+      const height = d.bannerHeight || 160;
+      const overlay = d.bannerOverlay || 0.3;
+
+      if (d.headerMode === 'custom' && d.customHeaderImage) {
+        return `
+          <div class="relative w-full overflow-hidden" style="height: ${height}px;">
+            <img src="${d.customHeaderImage}" class="w-full h-full object-cover object-center" alt="Header Banner">
+            <div class="absolute inset-0 bg-slate-950" style="opacity: ${overlay};"></div>
+          </div>
+        `;
+      }
+
+      const p = d.presetHeader || 'cyber-grid';
+      if (p === 'cyber-grid') {
+        return `
+          <div class="relative w-full overflow-hidden bg-grid-cyber border-b border-cyan-500/30" style="height: ${height}px;">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+          </div>
+        `;
+      } else if (p === 'rainbow-flow') {
+        return `
+          <div class="relative w-full overflow-hidden bg-rainbow-animated" style="height: ${height}px;">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+          </div>
+        `;
+      } else if (p === 'weather-dusk') {
+        return `
+          <div class="relative w-full overflow-hidden bg-weather-dusk" style="height: ${height}px;">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+          </div>
+        `;
+      } else {
+        const accent = d.accentColor || '#06b6d4';
+        return `
+          <div class="relative w-full overflow-hidden" style="height: ${height}px; background: radial-gradient(circle at 10% 20%, ${accent} 0%, rgba(15, 23, 42, 0.95) 90%);">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+          </div>
+        `;
+      }
+    }
+
+
+    // ====================================================
+    // REAL-TIME PREVIEW RENDERER
+    // ====================================================
+    function renderPreview() {
+      const d = cardData;
+      const body = document.getElementById('previewCardBody');
+
+      let themeClasses = "bg-slate-950 text-slate-200";
+
+      if (d.theme === 'editorial') {
+        themeClasses = "bg-stone-50 min-h-[720px]";
+      } else if (d.theme === 'cyber') {
+        themeClasses = "bg-slate-950 min-h-[720px]";
+      } else if (d.theme === 'rainbow') {
+        themeClasses = "bg-slate-900 min-h-[720px]";
+      } else if (d.theme === 'atmospheric') {
+        themeClasses = "bg-slate-950 min-h-[720px]";
+      }
+
+      body.className = themeClasses;
+      body.style.fontFamily = `'${d.bodyFont}', sans-serif`;
+
+      body.style.setProperty('--color-heading', d.headingColor || '#ffffff');
+      body.style.setProperty('--color-text', d.bodyTextColor || '#cbd5e1');
+      body.style.setProperty('--color-muted', d.mutedTextColor || '#64748b');
+      body.style.setProperty('--color-accent', d.accentColor || '#06b6d4');
+
+      const headerGraphic = getHeaderGraphicHTML(d);
+
+      const activeSocials = d.socials.filter(s => s.enabled);
+      const socialLinksHTML = activeSocials.map(s => `
+        <a href="${escapeAttr(s.url || '#')}" target="_blank" rel="noopener" class="hover:underline transition-colors flex items-center gap-1.5 text-xs font-mono card-muted hover:text-white">
+          <i class="${platformIcons[s.platform] || 'fa-solid fa-globe'} text-xs card-accent"></i>
+          <span>${escapeHtml(s.label || s.platform)}</span>
+        </a>
+      `).join('');
+
+      const sectionsHTML = d.sections.filter(s => s.enabled).map(sec => {
+        let secContentHTML = '';
+
+        if (sec.id === 'works') {
+          secContentHTML = `
+            <div class="divide-y hairline">
+              ${d.works.map(w => `
+                <article class="py-3.5 space-y-1 group">
+                  <div class="flex items-center justify-between">
+                    <a href="${escapeAttr(w.url || '#')}" target="_blank" rel="noopener" class="text-xs sm:text-sm font-semibold hover:underline flex items-center gap-1.5 card-accent">
+                      <span>${escapeHtml(w.title || 'Project Title')}</span>
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-70"></i>
+                    </a>
+                    <span class="font-mono text-[10px] card-muted">${escapeHtml(w.year || '')}</span>
+                  </div>
+                  <p class="text-xs card-text leading-relaxed opacity-90">${escapeHtml(w.desc || '')}</p>
+                </article>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          secContentHTML = `
+            <p class="text-xs sm:text-sm leading-relaxed card-text font-normal">
+              ${escapeHtml(sec.content || '')}
+            </p>
+          `;
+        }
+
+        return `
+          <section class="space-y-3">
+            <h2 class="font-mono text-[10px] card-muted uppercase tracking-widest" style="font-family: '${d.headingFont}', sans-serif;">
+              ${escapeHtml(sec.title)}
+            </h2>
+            ${secContentHTML}
+          </section>
+          <hr class="hairline border-t">
+        `;
+      }).join('');
+
+      body.innerHTML = `
+        ${headerGraphic}
+
+        <div class="max-w-xl mx-auto px-6 pt-6 pb-12 space-y-8">
+          
+          <section class="space-y-4">
+            <div class="space-y-1.5">
+              <h1 class="text-2xl sm:text-3xl font-bold tracking-tight card-heading" style="font-family: '${d.headingFont}', sans-serif;">
+                ${escapeHtml(d.name || 'Your Name')}
+              </h1>
+              <p class="text-sm sm:text-base font-light card-text leading-snug">
+                ${escapeHtml(d.title || '')}
+              </p>
+              ${d.location ? `
+                <p class="text-xs font-mono card-muted flex items-center gap-1.5 pt-1">
+                  <i class="fa-solid fa-location-dot text-[10px]"></i>
+                  <span>${escapeHtml(d.location)}</span>
+                </p>
+              ` : ''}
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 pt-1">
+              <button onclick="showToast('vCard Contact Downloaded')" class="px-4 py-2 rounded-full font-semibold text-xs flex items-center gap-1.5 shadow-sm transition-transform hover:scale-[1.02]" style="background-color: var(--color-accent); color: #000;">
+                <i class="fa-solid fa-address-card text-xs"></i>
+                <span>Save Contact (.vcf)</span>
+              </button>
+              ${d.calendly ? `
+                <a href="${escapeAttr(d.calendly)}" target="_blank" rel="noopener" class="px-4 py-2 rounded-full border border-slate-800 text-xs font-medium flex items-center gap-1.5 hover:border-slate-700 card-text">
+                  <i class="fa-regular fa-calendar text-xs card-accent"></i>
+                  <span>Schedule Call</span>
+                </a>
+              ` : ''}
+            </div>
+
+            ${socialLinksHTML ? `
+              <div class="pt-2 flex flex-wrap items-center gap-4">
+                ${socialLinksHTML}
+              </div>
+            ` : ''}
+          </section>
+
+          <hr class="hairline border-t">
+
+          ${sectionsHTML}
+
+          <footer class="pt-4 text-center text-[10px] font-mono card-muted">
+            <p>© ${new Date().getFullYear()} ${escapeHtml(d.name)} • Digital Business Card</p>
+          </footer>
+        </div>
+      `;
+    }
+
+
+    // ====================================================
+    // FULL COMPILER & EXPORT ENGINE
+    // ====================================================
+    function compileStandaloneHTML() {
+      const d = cardData;
+
+      // Calculate SEO Meta Defaults
+      const metaTitle = d.ogTitle || `${d.name || 'Personal Card'} — ${d.title || 'Digital Card'}`;
+      const metaDesc = d.ogDescription || (d.sections.find(s => s.id === 'bio')?.content || d.title || '');
+      const metaImage = d.ogImage || d.customHeaderImage || '';
+
+      const activeSocials = d.socials.filter(s => s.enabled);
+      const socialLinksHTML = activeSocials.map(s => `
+        <a href="${escapeAttr(s.url || '#')}" target="_blank" rel="noopener" class="hover:underline transition-colors flex items-center gap-1.5 text-xs font-mono card-muted hover:text-white">
+          <i class="${platformIcons[s.platform] || 'fa-solid fa-globe'} text-xs card-accent"></i>
+          <span>${escapeHtml(s.label || s.platform)}</span>
+        </a>
+      `).join('');
+
+      const sectionsHTML = d.sections.filter(s => s.enabled).map(sec => {
+        let secContentHTML = '';
+
+        if (sec.id === 'works') {
+          secContentHTML = `
+            <div class="divide-y hairline">
+              ${d.works.map(w => `
+                <article class="py-3.5 space-y-1 group">
+                  <div class="flex items-center justify-between">
+                    <a href="${escapeAttr(w.url || '#')}" target="_blank" rel="noopener" class="text-sm font-semibold hover:underline inline-flex items-center gap-1.5 card-accent">
+                      <span>${escapeHtml(w.title || 'Project Title')}</span>
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[10px] opacity-70"></i>
+                    </a>
+                    <span class="font-mono text-[11px] card-muted">${escapeHtml(w.year || '')}</span>
+                  </div>
+                  <p class="text-xs card-text leading-relaxed opacity-90">${escapeHtml(w.desc || '')}</p>
+                </article>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          secContentHTML = `
+            <p class="text-sm sm:text-base leading-relaxed card-text">
+              ${escapeHtml(sec.content || '')}
+            </p>
+          `;
+        }
+
+        return `
+          <section class="space-y-3">
+            <h2 class="font-mono text-[11px] card-muted uppercase tracking-widest" style="font-family: '${d.headingFont}', sans-serif;">
+              ${escapeHtml(sec.title)}
+            </h2>
+            ${secContentHTML}
+          </section>
+          <hr class="hairline border-t">
+        `;
+      }).join('');
+
+      const headerGraphic = getHeaderGraphicHTML(d);
+
+      // Web App Manifest Data URI for PWA
+      const manifestJSON = JSON.stringify({
+        name: metaTitle,
+        short_name: d.name || "Digital Card",
+        start_url: "./",
+        display: "standalone",
+        background_color: d.headingColor || "#0f172a",
+        theme_color: d.accentColor || "#06b6d4",
+        icons: [{
+          src: metaImage || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎴</text></svg>",
+          sizes: "192x192 512x512",
+          type: "image/svg+xml"
+        }]
+      });
+      const manifestDataUri = `data:application/manifest+json;utf8,${encodeURIComponent(manifestJSON)}`;
+
+      return `<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(metaTitle)}</title>
+  <meta name="description" content="${escapeAttr(metaDesc)}">
+
+  <!-- OpenGraph Social Sharing Meta Tags -->
+  <meta property="og:title" content="${escapeAttr(metaTitle)}">
+  <meta property="og:description" content="${escapeAttr(metaDesc)}">
+  <meta property="og:type" content="website">
+  ${metaImage ? `<meta property="og:image" content="${escapeAttr(metaImage)}">` : ''}
+
+  <!-- Twitter Card Tags -->
+  <meta name="twitter:card" content="${metaImage ? 'summary_large_image' : 'summary'}">
+  <meta name="twitter:title" content="${escapeAttr(metaTitle)}">
+  <meta name="twitter:description" content="${escapeAttr(metaDesc)}">
+  ${metaImage ? `<meta name="twitter:image" content="${escapeAttr(metaImage)}">` : ''}
+
+  <!-- PWA Manifest & Theme Color -->
+  <meta name="theme-color" content="${d.accentColor || '#06b6d4'}">
+  ${d.pwaEnabled !== false ? `<link rel="manifest" href="${manifestDataUri}">` : ''}
+
+  <script src="https://cdn.tailwindcss.com"><\/script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['${d.bodyFont}', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  <\/script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+
+  <style>
+    :root {
+      --color-heading: ${d.headingColor || '#ffffff'};
+      --color-text: ${d.bodyTextColor || '#cbd5e1'};
+      --color-muted: ${d.mutedTextColor || '#64748b'};
+      --color-accent: ${d.accentColor || '#06b6d4'};
+    }
+
+    body {
+      font-family: '${d.bodyFont}', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      text-rendering: optimizeLegibility;
+    }
+    .hairline {
+      border-color: rgba(148, 163, 184, 0.2);
+    }
+    .card-heading { color: var(--color-heading); }
+    .card-text { color: var(--color-text); }
+    .card-muted { color: var(--color-muted); }
+    .card-accent { color: var(--color-accent); }
+
+    .bg-grid-cyber {
+      background-color: #050b14;
+      background-image: 
+        linear-gradient(to right, rgba(0, 243, 255, 0.25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 243, 255, 0.25) 1px, transparent 1px),
+        radial-gradient(ellipse at 50% 100%, rgba(255, 0, 127, 0.45) 0%, transparent 75%);
+      background-size: 24px 24px, 24px 24px, 100% 100%;
+    }
+
+    @keyframes rainbowMeshShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .bg-rainbow-animated {
+      background: linear-gradient(-45deg, #ff0055, #ff5b00, #ffea00, #00e5ff, #7000ff, #ff00ab);
+      background-size: 300% 300%;
+      animation: rainbowMeshShift 8s ease infinite;
+    }
+
+    .bg-weather-dusk {
+      background: radial-gradient(circle at 20% 20%, rgba(245, 158, 11, 0.85), transparent 50%),
+                  radial-gradient(circle at 80% 70%, rgba(244, 63, 94, 0.8), transparent 60%),
+                  linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #701a75 100%);
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-200 min-h-screen transition-colors duration-300 relative selection:bg-cyan-500 selection:text-black">
+
+  <!-- Top Sticky Utilities Bar -->
+  <header class="sticky top-0 z-30 backdrop-blur-md bg-slate-950/80 border-b hairline">
+    <div class="max-w-xl mx-auto px-6 h-12 flex items-center justify-between text-xs">
+      <span class="font-mono font-semibold uppercase tracking-widest text-[11px] card-heading">
+        ${escapeHtml(d.name || '')}
+      </span>
+      <button onclick="openQRModal()" aria-label="Share QR Code" class="card-muted hover:text-white transition-colors p-1.5 flex items-center gap-1.5">
+        <i class="fa-solid fa-qrcode text-sm card-accent"></i>
+        <span class="font-mono text-[10px] uppercase hidden sm:inline">Share</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Card Body -->
+  <main class="max-w-xl mx-auto pb-20 space-y-8">
+
+    ${headerGraphic}
+
+    <div class="px-6 space-y-8">
+
+      <!-- Hero Identity -->
+      <section class="space-y-6 pt-2">
+        <div class="space-y-2">
+          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight card-heading" style="font-family: '${d.headingFont}', sans-serif;">
+            ${escapeHtml(d.name || '')}
+          </h1>
+          <p class="text-base sm:text-lg card-text font-light leading-snug">
+            ${escapeHtml(d.title || '')}
+          </p>
+          ${d.location ? `<p class="text-xs font-mono card-muted flex items-center gap-1.5 pt-1">
+            <i class="fa-solid fa-location-dot text-[10px]"></i>
+            <span>${escapeHtml(d.location)}</span>
+          </p>` : ''}
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 pt-1">
+          <button onclick="downloadVCard()" class="px-5 py-2.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-lg hover:opacity-90" style="background-color: var(--color-accent); color: #000;">
+            <i class="fa-solid fa-address-card text-xs"></i>
+            <span>Save to Contacts (.vcf)</span>
+          </button>
+          ${d.calendly ? `<a href="${escapeAttr(d.calendly)}" target="_blank" rel="noopener" class="px-5 py-2.5 rounded-full border border-slate-800 hover:border-slate-700 text-xs font-medium transition-all flex items-center gap-2 card-text">
+            <i class="fa-regular fa-calendar text-xs card-accent"></i>
+            <span>Schedule Call</span>
+          </a>` : ''}
+        </div>
+
+        ${socialLinksHTML ? `
+          <div class="pt-2 flex flex-wrap items-center gap-4">
+            ${socialLinksHTML}
+          </div>
+        ` : ''}
+      </section>
+
+      <hr class="hairline border-t">
+
+      ${sectionsHTML}
+
+      <footer class="pt-6 text-center text-xs font-mono card-muted border-t hairline">
+        <p>© ${new Date().getFullYear()} ${escapeHtml(d.name)} • Digital Card</p>
+      </footer>
+
+    </div>
+
+  </main>
+
+  <!-- QR Modal -->
+  <div id="qrModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="qrModalCard" class="bg-slate-900 p-6 rounded-2xl max-w-xs w-full text-center space-y-4 shadow-2xl border border-slate-800 transform scale-95 transition-transform duration-300">
+      <div class="flex items-center justify-between border-b hairline pb-3">
+        <h3 class="text-xs font-mono font-semibold uppercase tracking-wider text-white">Scan QR Code</h3>
+        <button onclick="closeQRModal()" aria-label="Close Modal" class="text-slate-400 hover:text-white text-sm">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="bg-white p-3 rounded-xl inline-block shadow-inner">
+        <div id="qrcode" class="flex justify-center"></div>
+      </div>
+
+      <p id="qrUrlLabel" class="text-[10px] font-mono text-slate-400 truncate max-w-full"></p>
+
+      <div class="flex gap-2 pt-1">
+        <button onclick="copyCardLink()" class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-white transition-colors">
+          Copy Link
+        </button>
+        <button onclick="closeQRModal()" class="flex-1 py-2 rounded-lg text-slate-950 font-bold text-xs transition-colors" style="background-color: var(--color-accent);">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full text-slate-950 font-bold text-xs font-mono shadow-xl opacity-0 pointer-events-none transition-all duration-300" style="background-color: var(--color-accent);">
+    <span id="toastMessage">Action completed</span>
+  </div>
+
+  <script>
+    const profile = {
+      name: ${JSON.stringify(d.name || '')},
+      title: ${JSON.stringify(d.title || '')},
+      phone: ${JSON.stringify(d.vcardPhone || d.phone || '')},
+      email: ${JSON.stringify(d.email || '')},
+      bio: ${JSON.stringify(d.sections.find(s => s.id === 'bio')?.content || '')}
+    };
+
+    window.onload = function() {
+      initQRCode();
+      registerOfflineServiceWorker();
+    };
+
+    // RFC 6350 Strict vCard Escaping Helper
+    function escapeVCard(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/\\\\/g, '\\\\\\\\')
+        .replace(/;/g, '\\\\;')
+        .replace(/,/g, '\\\\,')
+        .replace(/\\r?\\n/g, '\\\\n');
+    }
+
+    function downloadVCard() {
+      const vCardContent = [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        \`FN:\${escapeVCard(profile.name)}\`,
+        \`TITLE:\${escapeVCard(profile.title)}\`,
+        \`TEL;TYPE=CELL:\${escapeVCard(profile.phone)}\`,
+        \`EMAIL;TYPE=INTERNET:\${escapeVCard(profile.email)}\`,
+        \`URL:\${escapeVCard(window.location.href)}\`,
+        \`NOTE:\${escapeVCard(profile.bio)}\`,
+        'END:VCARD'
+      ].join('\\r\\n');
+
+      const blob = new Blob([vCardContent], { type: 'text/vcard;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = \`\${profile.name.replace(/\\s+/g, '_')}.vcf\`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast("Contact (.vcf) saved!");
+    }
+
+    function initQRCode() {
+      const qrContainer = document.getElementById('qrcode');
+      if (!qrContainer) return;
+      qrContainer.innerHTML = '';
+      const targetUrl = window.location.href;
+      document.getElementById('qrUrlLabel').innerText = targetUrl;
+
+      new QRCode(qrContainer, {
+        text: targetUrl,
+        width: 160,
+        height: 160,
+        colorDark: "#090d16",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    function openQRModal() {
+      const modal = document.getElementById('qrModal');
+      const card = document.getElementById('qrModalCard');
+      if (!modal || !card) return;
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      card.classList.remove('scale-95');
+      card.classList.add('scale-100');
+    }
+
+    function closeQRModal() {
+      const modal = document.getElementById('qrModal');
+      const card = document.getElementById('qrModalCard');
+      if (!modal || !card) return;
+      card.classList.remove('scale-100');
+      card.classList.add('scale-95');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function copyCardLink() {
+      copyToClipboard(window.location.href);
+      showToast("Link copied!");
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        document.body.removeChild(textArea);
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      document.getElementById('toastMessage').innerText = message;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+
+    // Inline Blob Service Worker for Offline PWA Support
+    function registerOfflineServiceWorker() {
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        const swCode = \`
+          const CACHE_NAME = 'card-pwa-v1';
+          self.addEventListener('install', (e) => {
+            e.waitUntil(caches.open(CACHE_NAME).then((c) => c.add(location.href)).then(() => self.skipWaiting()));
+          });
+          self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+          self.addEventListener('fetch', (e) => {
+            if (e.request.method !== 'GET') return;
+            e.respondWith(
+              fetch(e.request).then((res) => {
+                const resClone = res.clone();
+                caches.open(CACHE_NAME).then((c) => c.put(e.request, resClone));
+                return res;
+              }).catch(() => caches.match(e.request) || caches.match(location.href))
+            );
+          });
+        \`;
+        try {
+          const blob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swUrl).catch(() => {});
+        } catch(e) {}
+      }
+    }
+  <\/script>
+</body>
+</html>`;
+    }
+
+    // ====================================================
+    // VIEWPORT & STORAGE UTILITIES
+    // ====================================================
+    function setPreviewWidth(mode) {
+      const container = document.getElementById('previewContainer');
+      const mobileBtn = document.getElementById('viewMobileBtn');
+      const fullBtn = document.getElementById('viewFullBtn');
+
+      if (mode === 'mobile') {
+        container.className = "max-w-[380px] mx-auto transition-all duration-300 shadow-2xl rounded-2xl border hairline overflow-hidden bg-slate-950 min-h-[720px] relative";
+        mobileBtn.className = "px-2.5 py-1 rounded text-[11px] bg-slate-800 text-white font-mono";
+        fullBtn.className = "px-2.5 py-1 rounded text-[11px] text-slate-400 hover:text-white font-mono";
+      } else {
+        container.className = "max-w-full mx-auto transition-all duration-300 shadow-xl rounded-xl border hairline overflow-hidden bg-slate-950 min-h-[720px] relative";
+        fullBtn.className = "px-2.5 py-1 rounded text-[11px] bg-slate-800 text-white font-mono";
+        mobileBtn.className = "px-2.5 py-1 rounded text-[11px] text-slate-400 hover:text-white font-mono";
+      }
+    }
+
+    function switchMobileTab(tab) {
+      const editorPanel = document.getElementById('editorPanel');
+      const previewPanel = document.getElementById('previewPanel');
+      const tabEditor = document.getElementById('mobileTabEditor');
+      const tabPreview = document.getElementById('mobileTabPreview');
+
+      if (tab === 'editor') {
+        editorPanel.classList.remove('hidden');
+        previewPanel.classList.add('hidden');
+        tabEditor.className = "px-3 py-1 rounded-md text-white bg-slate-700 shadow-sm transition-all";
+        tabPreview.className = "px-3 py-1 rounded-md text-slate-400 transition-all";
+      } else {
+        editorPanel.classList.add('hidden');
+        previewPanel.classList.remove('hidden');
+        tabPreview.className = "px-3 py-1 rounded-md text-white bg-slate-700 shadow-sm transition-all";
+        tabEditor.className = "px-3 py-1 rounded-md text-slate-400 transition-all";
+      }
+    }
+
+    function downloadIndexHTML() {
+      const htmlCode = compileStandaloneHTML();
+      const blob = new Blob([htmlCode], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("index.html compiled & downloaded!");
+    }
+
+    function copyHTMLCode() {
+      const htmlCode = compileStandaloneHTML();
+      copyToClipboard(htmlCode);
+      showToast("HTML source copied!");
+    }
+
+    function saveDraft() {
+      localStorage.setItem('cardStudioDraft_v3', JSON.stringify(cardData));
+      showToast("Draft saved to LocalStorage!");
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cardData, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", "card-config.json");
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast("JSON configuration exported!");
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          cardData = JSON.parse(e.target.result);
+          populateForm();
+          renderSectionsForm();
+          renderWorksForm();
+          renderSocialsForm();
+          renderPreview();
+          showToast("Configuration imported!");
+        } catch(err) {
+          showToast("Failed to parse JSON file");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetToDefault() {
+      cardData = JSON.parse(JSON.stringify(defaultData));
+      populateForm();
+      renderSectionsForm();
+      renderWorksForm();
+      renderSocialsForm();
+      renderPreview();
+      showToast("Reset to sample default template");
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function escapeAttr(str) {
+      if (!str) return '';
+      return String(str).replace(/"/g, '&quot;');
+    }
+
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        document.body.removeChild(textArea);
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMessage').innerText = message;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
