@@ -3,7 +3,7 @@
 > **Experimental Project:** Built for testing and evaluation purposes using **Gemini 3.6 Think** with minimal manual adjustments.
 
 ---
-**[Open Live Application](https://mac-und-cheese.github.io/card_editor/)**
+**[Open Live Application](https://mac-und-cheese.github.io/card_editor/index.html)**
 
 ## Overview
 
